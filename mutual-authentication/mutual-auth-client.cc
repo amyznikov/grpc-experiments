@@ -83,21 +83,13 @@ public:
 
 
 
-static void run_test(const char * uname, const std::string & ckey, const std::string & ccert, const std::string & scert)
+static void run_test(const std::string & ckey, const std::string & ccert, const std::string & scert)
 {
   SslCredentialsOptions ssl_opts;
 
-  if ( !ckey.empty() ) {
-    ssl_opts.pem_private_key = ckey;
-  }
-
-  if ( !ccert.empty() ) {
-    ssl_opts.pem_cert_chain = ccert;
-  }
-
-  if ( !scert.empty() ) {
-    ssl_opts.pem_root_certs = scert;
-  }
+  ssl_opts.pem_private_key = ckey;
+  ssl_opts.pem_cert_chain = ccert;
+  ssl_opts.pem_root_certs = scert;
 
   shared_ptr<ChannelCredentials> creds = SslCredentials(ssl_opts);
 
@@ -110,8 +102,6 @@ static void run_test(const char * uname, const std::string & ckey, const std::st
 
 int main( int argc, char * argv[])
 {
-  const char * uname = NULL;
-
   // client private key
   const char * ckeyfilename = NULL;
   string ckey;
@@ -126,10 +116,7 @@ int main( int argc, char * argv[])
 
   for (int i = 1; i < argc; ++i) {
 
-    if ( strncmp(argv[i], "uname=", 6 ) == 0 ) {
-      uname = argv[i] + 6;
-    }
-    else if ( strncmp(argv[i], "ckey=", 5) == 0 ) {
+    if ( strncmp(argv[i], "ckey=", 5) == 0 ) {
       ckeyfilename = argv[i] + 5;
     }
     else if ( strncmp(argv[i], "ccert=", 6) == 0 ) {
@@ -142,7 +129,6 @@ int main( int argc, char * argv[])
       fprintf(stderr, "Invalid argument %s\n", argv[i]);
       fprintf(stderr, "Usage:\n");
       fprintf(stderr, "  client "
-          "[uname=<username>] "
           "[ckey=<client-private-key>] "
           "[ccert=<client-certificate>] "
           "[scert=<server-certificate>]"
@@ -170,7 +156,7 @@ int main( int argc, char * argv[])
 
 
   grpc_init();
-  run_test(uname, ckey, ccert, scert);
+  run_test(ckey, ccert, scert);
   grpc_shutdown();
 
   return 0;
