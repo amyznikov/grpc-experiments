@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+
+package test;
+
+
+
+//////////////////////////////////////////////////////
+
+message SayHelloRequest {
+}
+
+message SayHelloReply {
+	string hello = 1;
+}
+
+service Hello {
+	rpc sayHello(SayHelloRequest)
+		returns (SayHelloReply) {}
+}
+
+
+//////////////////////////////////////////////////////
+
+message ContactListRequest {
+}
+
+message Contact {
+	string name = 1;
+	string phone = 2;
+}
+
+service ContactListService {
+	rpc getContactList(ContactListRequest)
+		returns (stream Contact) {}
+}
+
+
+//////////////////////////////////////////////////////
