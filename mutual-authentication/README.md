@@ -1,4 +1,4 @@
-Simple test for mutual TLS authentification using x509 certificates.
+Simple test for mutual TLS authentification.
 ========
 
 
