@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+
+package mutual_auth_test;
+
+
+//////////////////////////////////////////////////////
+
+message SayHelloRequest {
+}
+
+message SayHelloReply {
+	string message = 1;
+}
+
+service Hello {
+	rpc sayHello(SayHelloRequest)
+		returns (SayHelloReply) {}
+}
+
+
+//////////////////////////////////////////////////////
