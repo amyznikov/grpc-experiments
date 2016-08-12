@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package smaster;
+
+message AuthRequest {
+	string cimei = 1;
+}
+
+message AuthResponce {
+	string authmsg =1 ;
+}
+
+service SMaster {
+	rpc authenticate(AuthRequest)
+		returns (AuthResponce) {}
+}
+
