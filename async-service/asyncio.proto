@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+
+package asyncio;
+
+
+service AsyncTester {
+	rpc test1(TestRequest) returns (TestResponce) {}
+	rpc test2(TestRequest) returns (stream TestResponce) {}
+	rpc test3(stream TestRequest) returns (TestResponce) {}
+	rpc test4(stream TestRequest) returns (stream TestResponce) {}
+}
+
+message TestRequest {
+	string clientMessage = 1;
+}
+
+message TestResponce {
+	string serverMessage = 1;
+}
+
