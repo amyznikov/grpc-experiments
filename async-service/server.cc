@@ -10,7 +10,7 @@
 #include <chrono>
 #include "asyncio.grpc.pb.h"
 #include <grpc++/alarm.h>
-#include "../async-service/async-call-handler.h"
+#include "async-call-handler.h"
 
 using namespace grpc;
 using namespace std;

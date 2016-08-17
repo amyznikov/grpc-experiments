@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+
+package test;
+
+service StreamTester {
+	rpc ListenNotifications(ListenNotificationsRequest) returns (stream ServerNotification) {}
+}
+
+message ListenNotificationsRequest {
+}
+
+message ServerNotification {
+	string event = 1;
+	string details = 2;
+}
+
