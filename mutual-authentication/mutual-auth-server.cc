@@ -61,7 +61,7 @@ class SayHelloService GRPC_FINAL
 
   Status sayHello(ServerContext* context, const SayHelloRequest* request, SayHelloReply* response)
   {
-    PDBG("ENTER");
+    PDBG("\n\n----------------------\nENTER");
 
     shared_ptr<const AuthContext> auth = context->auth_context();
 
@@ -86,7 +86,7 @@ class SayHelloService GRPC_FINAL
 
     response->set_message(ssprintf("Hello from thread %d", gettid()));
 
-    PDBG("LEAVE");
+    PDBG("LEAVE\n---------------------\n\n\n\n");
     return Status::OK;
   }
 
@@ -114,7 +114,12 @@ static void run_test(const std::string & server_key, const std::string & server_
   builder.RegisterService(&service);
 
   unique_ptr<Server> server = builder.BuildAndStart();
-  server->Wait();
+  if ( !server ) {
+    PDBG("builder.BuildAndStart() fais");
+  }
+  else {
+    server->Wait();
+  }
 }
 
 
@@ -124,11 +129,11 @@ static void run_test(const std::string & server_key, const std::string & server_
 int main(int argc, char * argv[])
 {
   // server private key
-  const char * skeyfilename;
+  const char * skeyfilename = NULL;
   std::string skey;
 
   // server certifiate
-  const char * scertfilename;
+  const char * scertfilename = NULL;
   std::string scert;
 
   for ( int i = 1; i < argc; ++i ) {

@@ -95,8 +95,19 @@ static void run_test(const std::string & ckey, const std::string & ccert, const 
 
   shared_ptr<Channel> channel = CreateChannel("localhost:50051", creds);
 
-  SayHelloClient client(channel);
-  client.sayHello();
+  if ( !channel ) {
+    PDBG("CreateChannel() fails");
+  }
+  else {
+
+    SayHelloClient client(channel);
+
+    // call
+    client.sayHello();
+
+    // again
+    client.sayHello();
+  }
 }
 
 
