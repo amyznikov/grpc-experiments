@@ -83,13 +83,14 @@ public:
 
 
 
-static void run_test(const std::string & ckey, const std::string & ccert, const std::string & scert)
+static void run_test(const std::string & ckey, const std::string & ccert, const std::string & cacert)
 {
   SslCredentialsOptions ssl_opts;
 
+  ssl_opts.pem_root_certs = cacert;
   ssl_opts.pem_private_key = ckey;
   ssl_opts.pem_cert_chain = ccert;
-  ssl_opts.pem_root_certs = scert;
+
 
   shared_ptr<ChannelCredentials> creds = SslCredentials(ssl_opts);
 
@@ -106,7 +107,7 @@ static void run_test(const std::string & ckey, const std::string & ccert, const 
     client.sayHello();
 
     // again
-    client.sayHello();
+    // client.sayHello();
   }
 }
 
@@ -121,9 +122,9 @@ int main( int argc, char * argv[])
   const char * ccertfilename = NULL;
   string ccert;
 
-  // server certificate
-  const char * scertfilename = NULL;
-  string scert;
+  // CA root (or server) certificate
+  const char * cacertfilename = NULL;
+  string cacert;
 
   for (int i = 1; i < argc; ++i) {
 
@@ -133,8 +134,8 @@ int main( int argc, char * argv[])
     else if ( strncmp(argv[i], "ccert=", 6) == 0 ) {
       ccertfilename = argv[i] + 6;
     }
-    else if ( strncmp(argv[i], "scert=", 6) == 0 ) {
-      scertfilename = argv[i] + 6;
+    else if ( strncmp(argv[i], "cacert=", 7) == 0 ) {
+      cacertfilename = argv[i] + 7;
     }
     else {
       fprintf(stderr, "Invalid argument %s\n", argv[i]);
@@ -142,7 +143,7 @@ int main( int argc, char * argv[])
       fprintf(stderr, "  client "
           "[ckey=<client-private-key>] "
           "[ccert=<client-certificate>] "
-          "[scert=<server-certificate>]"
+          "[cacert=<ca-root-certificate>]"
           "\n");
       return 1;
     }
@@ -159,15 +160,14 @@ int main( int argc, char * argv[])
     return 1;
   }
 
-  if ( scertfilename && (scert = readfile(scertfilename)).empty() ) {
-    fprintf(stderr, "readfile(%s) fails: %s\n", scertfilename, strerror(errno));
+  if ( cacertfilename && (cacert = readfile(cacertfilename)).empty() ) {
+    fprintf(stderr, "readfile(%s) fails: %s\n", cacertfilename, strerror(errno));
     return 1;
   }
 
 
-
   grpc_init();
-  run_test(ckey, ccert, scert);
+  run_test(ckey, ccert, cacert);
   grpc_shutdown();
 
   return 0;

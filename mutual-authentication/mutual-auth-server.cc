@@ -93,7 +93,27 @@ class SayHelloService GRPC_FINAL
 };
 
 
-static void run_test(const std::string & server_key, const std::string & server_cert)
+class MyAuthMetadataProcessor
+    : public AuthMetadataProcessor {
+public:
+  Status Process(const InputMetadata& auth_metadata, AuthContext* context, OutputMetadata* consumed_auth_metadata,
+      OutputMetadata* response_metadata)
+  {
+    PDBG("ENTER");
+
+    multimap<string_ref, string_ref>::const_iterator ii = auth_metadata.begin();
+    for ( ; ii != auth_metadata.end(); ++ii ) {
+      std::string key(ii->first.begin(), ii->first.end());
+      std::string val(ii->second.begin(), ii->second.end());
+      PDBG("'%s'='%s'", key.c_str(), val.c_str());
+    }
+
+    PDBG("LEAVE");
+    return Status::OK;
+  }
+};
+
+static void run_test(const std::string & skey, const std::string & scert, const std::string & cacert)
 {
   std::string server_address("0.0.0.0:50051");
   SayHelloService service;
@@ -102,15 +122,19 @@ static void run_test(const std::string & server_key, const std::string & server_
 
   SslServerCredentialsOptions ssl_opts(GRPC_SSL_REQUEST_AND_REQUIRE_CLIENT_CERTIFICATE_AND_VERIFY);
 
-  ssl_opts.pem_root_certs = server_cert;
+  ssl_opts.pem_root_certs = cacert;
 
   ssl_opts.pem_key_cert_pairs.push_back((SslServerCredentialsOptions::PemKeyCertPair) {
-        .private_key = server_key,
-        .cert_chain = server_cert
+        .private_key = skey,
+        .cert_chain = scert
       });
 
 
-  builder.AddListeningPort(server_address, SslServerCredentials(ssl_opts));
+  shared_ptr<ServerCredentials> creds = SslServerCredentials(ssl_opts);
+  shared_ptr<AuthMetadataProcessor> authproc(new MyAuthMetadataProcessor());
+  creds->SetAuthMetadataProcessor(authproc);
+
+  builder.AddListeningPort(server_address, creds);
   builder.RegisterService(&service);
 
   unique_ptr<Server> server = builder.BuildAndStart();
@@ -136,6 +160,10 @@ int main(int argc, char * argv[])
   const char * scertfilename = NULL;
   std::string scert;
 
+  // CA root certificate
+  const char * cacertfilename = NULL;
+  std::string cacert;
+
   for ( int i = 1; i < argc; ++i ) {
     if ( strncmp(argv[i], "skey=", 5) == 0 ) {
       skeyfilename = argv[i] + 5;
@@ -143,10 +171,17 @@ int main(int argc, char * argv[])
     else if ( strncmp(argv[i], "scert=", 6) == 0 ) {
       scertfilename = argv[i] + 6;
     }
+    else if ( strncmp(argv[i], "cacert=", 7) == 0 ) {
+      cacertfilename = argv[i] + 7;
+    }
     else {
       fprintf(stderr, "Invalid arg %s\n", argv[i]);
       fprintf(stderr, "Usage:\n");
-      fprintf(stderr, "  server [skey=<server-private-key>] [scert=<server-certificate>]\n");
+      fprintf(stderr, "  server "
+          "[skey=<server-private-key>] "
+          "[scert=<server-certificate>]"
+          "[cacert=<ca-root-certificate>]"
+          "\n");
       return 1;
     }
   }
@@ -162,10 +197,16 @@ int main(int argc, char * argv[])
     return 1;
   }
 
+  if ( cacertfilename && (cacert = readfile(cacertfilename)).empty() ) {
+    fprintf(stderr, "readfile(%s) fails: %s\n", cacertfilename, strerror(errno));
+    return 1;
+  }
+
+
 
   grpc_init();
 
-  run_test(skey, scert);
+  run_test(skey, scert, cacert);
 
   grpc_shutdown();
   return 0;
